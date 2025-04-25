@@ -1,0 +1,25 @@
+apiVersion: templates.gatekeeper.sh/v1beta1
+kind: ConstraintTemplate
+metadata:
+  name: k8srequireprobes
+spec:
+  crd:
+    spec:
+      names:
+        kind: K8sRequireProbes
+  targets:
+    - target: admission.k8s.gatekeeper.sh
+      rego: |
+        package k8srequireprobes
+
+        deny[msg] {
+          container := input.review.object.spec.containers[_]
+          not container.livenessProbe
+          msg := sprintf("Container '%s' must have a livenessProbe", [container.name])
+        }
+
+        deny[msg] {
+          container := input.review.object.spec.containers[_]
+          not container.readinessProbe
+          msg := sprintf("Container '%s' must have a readinessProbe", [container.name])
+        }
